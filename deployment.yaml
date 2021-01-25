@@ -1,0 +1,60 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: sgm
+  name: project-sgm-server
+  labels:
+    app: project-sgm
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: project-sgm
+  template:
+    metadata:
+      labels:
+        app: project-sgm
+    spec:
+      imagePullSecrets:
+      - name: pipeline-docker-registry
+      containers:
+      - name: project-sgm
+        image: ${CICD_IMAGE}:${CICD_EXECUTION_SEQUENCE}
+        ports:
+        - containerPort: 80
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: sgm
+  name: project-sgm-service
+spec:
+  selector:
+    app: project-sgm
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  namespace: sgm
+  name: project-sgm-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: default
+spec:
+  rules:
+    - host: project-sgm.3head.com.br
+      http:
+        paths:
+          - backend:
+              serviceName: project-sgm-service
+              servicePort: 80

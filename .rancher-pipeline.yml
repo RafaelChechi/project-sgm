@@ -1,0 +1,27 @@
+stages:
+- name: Publish
+  steps:
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile
+      buildContext: .
+      tag: project-sgm-server:${CICD_EXECUTION_SEQUENCE}
+    env:
+      PLUGIN_DEBUG: "true"
+      PLUGIN_INSECURE: "true"
+- name: Deploy
+  steps:
+  - applyYamlConfig:
+      path: ./deployment.yaml
+branch:
+  include:
+  - master
+notification:
+  recipients:
+  - recipient: rafaelchechi@gmail.com
+    notifier: c-ztc4h:n-gwpds
+  - recipient: tiagolgasparetto@gmail.com
+    notifier: c-ztc4h:n-gwpds
+  condition:
+  - Success
+  - Changed
+  - Failed
